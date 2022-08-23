@@ -1,5 +1,6 @@
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.db import models
+from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -124,18 +125,59 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
-class Order(models.Model):
+class Customer(models.Model):
     name = models.CharField(verbose_name='Имя', max_length=50)
     lastname = models.CharField(verbose_name='Фамилия', max_length=50)
     phonenumber = PhoneNumberField(verbose_name='Телефонный номер', db_index=True)
     address = models.CharField(verbose_name='Адрес', max_length=50, db_index=True)
 
     class Meta:
+        verbose_name = 'Клиент'
+        verbose_name_plural = 'Клиенты'
+
+    def __str__(self):
+        return f"{self.name} {self.lastname} - {self.address}"
+
+
+class Order(models.Model):
+    NEW = 'NEW'
+    CONFIRMED = 'CON'
+    CANCELED = 'CCD'
+    FULFILLED = 'FF'
+    STATUS_CHOICES = [
+        (NEW, 'Необработанный'),
+        (CONFIRMED, 'Обработанный'),
+        (CANCELED, 'Отмененный'),
+        (FULFILLED, 'Исполненный'),
+    ]
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE,
+        verbose_name='Заказчик',
+        related_name='orders',
+        blank=False,
+        null=False,
+        default=''
+    )
+    status = models.CharField(
+        verbose_name='Статус заказа',
+        choices=STATUS_CHOICES,
+        default=NEW,
+        max_length=3
+    )
+    created_at = models.DateTimeField(
+        verbose_name='Дата создания',
+        null=True,
+        blank=True,
+        default=timezone.now,
+    )
+
+    class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
 
     def __str__(self):
-        return f"{self.name} {self.lastname} - {self.address}"
+        return f'{self.customer} - {self.created_at}'
 
 
 class OrderItem(models.Model):
@@ -164,10 +206,6 @@ class OrderItem(models.Model):
         verbose_name='Заказ',
         related_name='items'
     )
-
-    def set_relevant_price(self):
-        self.price = self.product.price
-        return self
 
     class Meta:
         verbose_name = 'Позиция заказа'
