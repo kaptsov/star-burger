@@ -7,11 +7,27 @@ from .models import Product
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
+from .models import Order, OrderItem
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
     model = RestaurantMenuItem
     extra = 0
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = [
+        'name',
+        'lastname',
+        'address'
+    ]
+    search_fields = ['phonenumber']
+    inlines = [OrderItemInline]
 
 
 @admin.register(Restaurant)
@@ -53,7 +69,7 @@ class ProductAdmin(admin.ModelAdmin):
     ]
 
     inlines = [
-        RestaurantMenuItemInline
+        RestaurantMenuItemInline,
     ]
     fieldsets = (
         ('Общее', {
@@ -104,3 +120,5 @@ class ProductAdmin(admin.ModelAdmin):
 @admin.register(ProductCategory)
 class ProductAdmin(admin.ModelAdmin):
     pass
+
+

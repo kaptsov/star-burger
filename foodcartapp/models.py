@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class Restaurant(models.Model):
@@ -121,3 +122,56 @@ class RestaurantMenuItem(models.Model):
 
     def __str__(self):
         return f"{self.restaurant.name} - {self.product.name}"
+
+
+class Order(models.Model):
+    name = models.CharField(verbose_name='Имя', max_length=50)
+    lastname = models.CharField(verbose_name='Фамилия', max_length=50)
+    phonenumber = PhoneNumberField(verbose_name='Телефонный номер')
+    address = models.CharField(verbose_name='Адрес', max_length=50)
+
+    class Meta:
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
+
+    def __str__(self):
+        return f"{self.name} {self.lastname} - {self.address}"
+
+
+class OrderItem(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name='Товар',
+        related_name='demands'
+    )
+
+    price = models.DecimalField(
+        'цена за шт',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+
+    quantity = models.SmallIntegerField(
+        'Количество',
+        validators=[MinValueValidator(1)]
+    )
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        verbose_name='Заказ',
+        related_name='items'
+    )
+
+    def set_relevant_price(self):
+        self.price = self.product.price
+        return self
+
+    class Meta:
+        verbose_name = 'Позиция заказа'
+        verbose_name_plural = 'Позиции в заказе'
+
+    def __str__(self):
+        return f'{self.product.name} - {self.quantity} шт.'
