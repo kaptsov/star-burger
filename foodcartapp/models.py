@@ -136,7 +136,7 @@ class Customer(models.Model):
         verbose_name_plural = 'Клиенты'
 
     def __str__(self):
-        return f"{self.name} {self.lastname} - {self.address}"
+        return f'{self.name} {self.lastname} - {self.address}'
 
 
 class Order(models.Model):
@@ -157,7 +157,6 @@ class Order(models.Model):
         related_name='orders',
         blank=False,
         null=False,
-        default=''
     )
     status = models.CharField(
         verbose_name='Статус заказа',
