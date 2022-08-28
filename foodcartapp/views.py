@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
 from .models import OrderItem, Order, Customer
+from rest_framework.decorators import api_view
 
 import json
 
@@ -59,31 +60,29 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
-    try:
-        data = json.loads(request.body.decode())
-        print(data)
-        customer, _ = Customer.objects.update_or_create(
-            name=data['firstname'],
-            lastname=data['lastname'],
-            phonenumber=data['phonenumber'],
-            address=data['address'],
-        )
-        print(customer.pk)
-        order, _ = Order.objects.update_or_create(
-            customer=Customer.objects.get(pk=customer.pk),
+
+    data = request.data
+    print(data)
+    customer, _ = Customer.objects.update_or_create(
+        name=data['firstname'],
+        lastname=data['lastname'],
+        phonenumber=data['phonenumber'],
+        address=data['address'],
+    )
+    print(customer.pk)
+    order, _ = Order.objects.update_or_create(
+        customer=Customer.objects.get(pk=customer.pk),
+    )
+
+    for order_item in data['products']:
+        OrderItem.objects.update_or_create(
+            order=Order.objects.get(pk=order.pk),
+            product=Product.objects.get(pk=order_item['product']),
+            quantity=order_item['quantity'],
+            price=200
         )
 
-        for order_item in data['products']:
-            OrderItem.objects.update_or_create(
-                order=Order.objects.get(pk=order.pk),
-                product=Product.objects.get(pk=order_item['product']),
-                quantity=order_item['quantity'],
-                price=200
-            )
-    except ValueError:
-        return JsonResponse({
-            'error': 'Value error, Sir',
-        })
     return JsonResponse(data)
 
