@@ -7,7 +7,7 @@ from .models import Product
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
-from .models import Order, OrderItem, Customer
+from .models import Order, OrderItem
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
@@ -19,19 +19,16 @@ class OrderItemInline(admin.TabularInline):
     model = OrderItem
 
 
-@admin.register(Customer)
-class CustomerAdmin(admin.ModelAdmin):
-    pass
-
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = [
-        'customer',
-        'created_at',
-        'status'
-    ]
+    fields = (
+        ('phonenumber', 'firstname', 'lastname'),
+        ('address'),
+        ('created_on'),
+    )
     search_fields = ['phonenumber']
     inlines = [OrderItemInline]
+
 
 
 @admin.register(Restaurant)

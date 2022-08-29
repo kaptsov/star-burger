@@ -1,10 +1,10 @@
 from django.http import JsonResponse
 from django.templatetags.static import static
-from .models import OrderItem, Order, Customer
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.serializers import ModelSerializer
 
-import json
-
+from .models import OrderItem, Order
 from .models import Product
 
 
@@ -60,29 +60,43 @@ def product_list_api(request):
     })
 
 
+class OrderItemSerializer(ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity']
+
+
+class OrderSerializer(ModelSerializer):
+    products = OrderItemSerializer(many=True, allow_empty=False, write_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'products']
+
+
+
 @api_view(['POST'])
 def register_order(request):
 
-    data = request.data
-    print(data)
-    customer, _ = Customer.objects.update_or_create(
-        name=data['firstname'],
-        lastname=data['lastname'],
-        phonenumber=data['phonenumber'],
-        address=data['address'],
+    request_serializer = OrderSerializer(data=request.data)
+    request_serializer.is_valid(raise_exception=True)
+    customer, _ = Order.objects.update_or_create(
+        name=request_serializer.validated_data['firstname'],
+        lastname=request_serializer.validated_data['lastname'],
+        phonenumber=request_serializer.validated_data['phonenumber'],
+        address=request_serializer.validated_data['address'],
     )
     print(customer.pk)
     order, _ = Order.objects.update_or_create(
         customer=Customer.objects.get(pk=customer.pk),
     )
+    order_items = [
+        OrderItem(order=order, **fields)
+        for fields in request_serializer.validated_data['products']
+        ]
+    OrderItem.objects.bulk_create(order_items)
 
-    for order_item in data['products']:
-        OrderItem.objects.update_or_create(
-            order=Order.objects.get(pk=order.pk),
-            product=Product.objects.get(pk=order_item['product']),
-            quantity=order_item['quantity'],
-            price=200
-        )
+    response_serializer = OrderSerializer(order)
 
-    return JsonResponse(data)
+    return Response(response_serializer.data)
 

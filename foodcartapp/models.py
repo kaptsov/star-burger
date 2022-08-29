@@ -125,20 +125,6 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
-class Customer(models.Model):
-    name = models.CharField(verbose_name='Имя', max_length=50)
-    lastname = models.CharField(verbose_name='Фамилия', max_length=50)
-    phonenumber = PhoneNumberField(verbose_name='Телефонный номер', db_index=True)
-    address = models.CharField(verbose_name='Адрес', max_length=50, db_index=True)
-
-    class Meta:
-        verbose_name = 'Клиент'
-        verbose_name_plural = 'Клиенты'
-
-    def __str__(self):
-        return f'{self.name} {self.lastname} - {self.address}'
-
-
 class Order(models.Model):
     NEW = 'NEW'
     CONFIRMED = 'CON'
@@ -150,13 +136,26 @@ class Order(models.Model):
         (CANCELED, 'Отмененный'),
         (FULFILLED, 'Исполненный'),
     ]
-    customer = models.ForeignKey(
-        Customer,
-        on_delete=models.CASCADE,
-        verbose_name='Заказчик',
-        related_name='orders',
-        blank=False,
-        null=False,
+    firstname = models.CharField(
+        verbose_name='Имя',
+        max_length=50,
+        null=True,
+    )
+    lastname = models.CharField(
+        verbose_name='Фамилия',
+        max_length=50,
+        null=True,
+    )
+    phonenumber = PhoneNumberField(
+        verbose_name='Телефонный номер',
+        db_index=True,
+        default='55555555'
+    )
+    address = models.CharField(
+        verbose_name='Адрес',
+        max_length=50,
+        db_index=True,
+        default='Ул.Пушкина, д.Колотушкина',
     )
     status = models.CharField(
         verbose_name='Статус заказа',
@@ -176,7 +175,7 @@ class Order(models.Model):
         verbose_name_plural = 'Заказы'
 
     def __str__(self):
-        return f'{self.customer} - {self.created_at}'
+        return f'{self.name} {self.lastname} - {self.address}'
 
 
 class OrderItem(models.Model):
