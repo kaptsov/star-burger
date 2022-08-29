@@ -24,7 +24,6 @@ class OrderAdmin(admin.ModelAdmin):
     fields = (
         ('phonenumber', 'firstname', 'lastname'),
         ('address'),
-        ('created_on'),
     )
     search_fields = ['phonenumber']
     inlines = [OrderItemInline]

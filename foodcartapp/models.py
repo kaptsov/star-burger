@@ -175,7 +175,7 @@ class Order(models.Model):
         verbose_name_plural = 'Заказы'
 
     def __str__(self):
-        return f'{self.name} {self.lastname} - {self.address}'
+        return f'{self.firstname} {self.lastname} - {self.address}'
 
 
 class OrderItem(models.Model):
@@ -184,13 +184,6 @@ class OrderItem(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Товар',
         related_name='demands'
-    )
-
-    price = models.DecimalField(
-        'цена за шт',
-        max_digits=8,
-        decimal_places=2,
-        validators=[MinValueValidator(0)]
     )
 
     quantity = models.SmallIntegerField(

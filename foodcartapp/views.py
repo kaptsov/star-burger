@@ -71,32 +71,27 @@ class OrderSerializer(ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'products']
-
+        fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
 
 
 @api_view(['POST'])
 def register_order(request):
-
     request_serializer = OrderSerializer(data=request.data)
+    print(request_serializer.initial_data)
     request_serializer.is_valid(raise_exception=True)
-    customer, _ = Order.objects.update_or_create(
-        name=request_serializer.validated_data['firstname'],
+
+    order = Order.objects.create(
+        firstname=request_serializer.validated_data['firstname'],
         lastname=request_serializer.validated_data['lastname'],
         phonenumber=request_serializer.validated_data['phonenumber'],
-        address=request_serializer.validated_data['address'],
-    )
-    print(customer.pk)
-    order, _ = Order.objects.update_or_create(
-        customer=Customer.objects.get(pk=customer.pk),
+        address=request_serializer.validated_data['address']
     )
     order_items = [
         OrderItem(order=order, **fields)
         for fields in request_serializer.validated_data['products']
-        ]
+    ]
     OrderItem.objects.bulk_create(order_items)
 
     response_serializer = OrderSerializer(order)
 
     return Response(response_serializer.data)
-
