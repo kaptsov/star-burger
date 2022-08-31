@@ -94,11 +94,12 @@ def view_restaurants(request):
 def view_orders(request):
 
     orders = (
-        Order.objects.filter(status='NEW')
+        Order.objects.filter(status='NEW').calculate_total_price()
     )
     orders_serialized = [
         {
             'id': order.id,
+            'price_total': order.price_total,
             'firstname': order.firstname,
             'lastname': order.lastname,
             'phonenumber': order.phonenumber,

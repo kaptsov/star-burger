@@ -2,7 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
-
+from django.db.models import Sum, F
 
 class Restaurant(models.Model):
     name = models.CharField(
@@ -125,6 +125,12 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
+class OrderQuerySet(models.QuerySet):
+
+    def calculate_total_price(self):
+        return self.annotate(price_total=Sum(F('items__product__price') * F('items__quantity')))
+
+
 class Order(models.Model):
     NEW = 'NEW'
     CONFIRMED = 'CON'
@@ -169,6 +175,8 @@ class Order(models.Model):
         blank=True,
         default=timezone.now,
     )
+
+    objects = OrderQuerySet().as_manager()
 
     class Meta:
         verbose_name = 'Заказ'
